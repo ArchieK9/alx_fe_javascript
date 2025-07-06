@@ -194,19 +194,18 @@ function showSyncMessage(message, color = "green") {
   }
 }
 
-// This function is responsible purely for fetching quotes from the server
+// This function fetches quotes from the server
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch(API_URL);
     const serverData = await response.json();
 
-    // Convert API posts to quotes with text and category properties
     const serverQuotes = serverData
       .map(item => ({
         text: item.title || item.body,
         category: item.body ? "Imported" : "General"
       }))
-      .slice(0, 10); // limit for demo purposes
+      .slice(0, 10); // limit for demo
 
     return serverQuotes;
   } catch (error) {
@@ -227,7 +226,7 @@ async function syncQuotes() {
     saveQuotes();
     populateCategories();
     filterQuotes();
-    showSyncMessage("New quotes synced from server.", "blue");
+    showSyncMessage("Quotes synced with server!", "blue");
   } else {
     showSyncMessage("No new updates from server.", "gray");
   }
