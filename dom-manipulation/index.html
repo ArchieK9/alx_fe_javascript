@@ -26,6 +26,10 @@
       margin-top: 10px; 
       font-style: italic;
     }
+    #syncStatus {
+      color: green;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -47,9 +51,11 @@
 
   <h3>Export / Import Quotes</h3>
   <button onclick="exportToJsonFile()">Export Quotes</button>
-
+  <div id="syncStatus"></div>
   <label for="importFile">Import Quotes (JSON file):</label>
   <input type="file" id="importFile" accept=".json" onchange="importFromJsonFile(event)" title="Select a JSON file to import quotes" />
+
+  <div id="syncStatus"></div>
 
   <script src="script.js"></script>
 </body>
