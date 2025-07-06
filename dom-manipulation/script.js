@@ -1,23 +1,4 @@
-// ==========================
-// Simulated Server API
-// ==========================
-const mockServer = {
-  quotes: [
-    { text: "Server quote: Stay hungry, stay foolish.", category: "Motivation" },
-    { text: "Server quote: Time is money.", category: "Life" }
-  ],
-  getQuotes() {
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(this.quotes), 1000);
-    });
-  },
-  postQuote(quote) {
-    return new Promise((resolve) => {
-      this.quotes.push(quote);
-      setTimeout(() => resolve({ success: true }), 500);
-    });
-  }
-};
+const API_URL = "https://jsonplaceholder.typicode.com/posts";
 
 // ==========================
 // Local Variables and State
@@ -101,7 +82,18 @@ async function addQuote() {
 
   alert("Quote added successfully!");
 
-  await mockServer.postQuote(newQuote);
+  // POST to server
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newQuote)
+    });
+    showSyncMessage("Quote posted to server.", "green");
+  } catch (error) {
+    console.error("Error posting to server:", error);
+    showSyncMessage("Failed to sync quote with server.", "red");
+  }
 }
 
 function createAddQuoteForm() {
@@ -191,7 +183,7 @@ function importFromJsonFile(event) {
 }
 
 // ==========================
-// Sync and Conflict Resolution
+// Server Sync & Conflict Resolution
 // ==========================
 function showSyncMessage(message, color = "green") {
   const statusDiv = document.getElementById("syncStatus");
@@ -199,33 +191,51 @@ function showSyncMessage(message, color = "green") {
     statusDiv.textContent = message;
     statusDiv.style.color = color;
     setTimeout(() => { statusDiv.textContent = ""; }, 5000);
-  } else {
-    console.log("Sync status:", message);
   }
 }
 
-async function fetchQuotesFromServer(){
-  const serverQuotes = await mockServer.getQuotes();
-  const localQuotes = [...quotes];
+// This function is responsible purely for fetching quotes from the server
+async function fetchQuotesFromServer() {
+  try {
+    const response = await fetch(API_URL);
+    const serverData = await response.json();
+
+    // Convert API posts to quotes with text and category properties
+    const serverQuotes = serverData
+      .map(item => ({
+        text: item.title || item.body,
+        category: item.body ? "Imported" : "General"
+      }))
+      .slice(0, 10); // limit for demo purposes
+
+    return serverQuotes;
+  } catch (error) {
+    console.error("Failed to fetch quotes from server:", error);
+    return [];
+  }
+}
+
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
 
   const newServerQuotes = serverQuotes.filter(sq =>
-    !localQuotes.some(lq => lq.text === sq.text && lq.category === sq.category)
+    !quotes.some(lq => lq.text === sq.text && lq.category === sq.category)
   );
 
   if (newServerQuotes.length > 0) {
-    showSyncMessage("New quotes synced from server.", "blue");
     quotes.push(...newServerQuotes);
     saveQuotes();
     populateCategories();
     filterQuotes();
+    showSyncMessage("New quotes synced from server.", "blue");
   } else {
-    showSyncMessage("No new server updates.");
+    showSyncMessage("No new updates from server.", "gray");
   }
 }
 
-function startfetchQuotesFromServer() {
-  fetchQuotesFromServer(); // Initial sync
-  setInterval(fetchQuotesFromServer, 30000); // Then every 30s
+function startSyncQuotes() {
+  syncQuotes();
+  setInterval(syncQuotes, 30000);
 }
 
 // ==========================
@@ -237,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
   populateCategories();
   updateLastViewedDisplay();
   showRandomQuote();
-  startfetchQuotesFromServer();
+  startSyncQuotes();
 });
 
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
