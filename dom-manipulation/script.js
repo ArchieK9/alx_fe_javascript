@@ -204,7 +204,7 @@ function showSyncMessage(message, color = "green") {
   }
 }
 
-async function syncWithServer() {
+async function fetchQuotesFromServer(){
   const serverQuotes = await mockServer.getQuotes();
   const localQuotes = [...quotes];
 
@@ -223,9 +223,9 @@ async function syncWithServer() {
   }
 }
 
-function startSyncWithServer() {
-  syncWithServer(); // Initial sync
-  setInterval(syncWithServer, 30000); // Then every 30s
+function startfetchQuotesFromServer() {
+  fetchQuotesFromServer(); // Initial sync
+  setInterval(fetchQuotesFromServer, 30000); // Then every 30s
 }
 
 // ==========================
@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
   populateCategories();
   updateLastViewedDisplay();
   showRandomQuote();
-  startSyncWithServer();
+  startfetchQuotesFromServer();
 });
 
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
